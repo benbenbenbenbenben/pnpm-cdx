@@ -1,0 +1,41 @@
+{
+  "name": "pnpm-cdx",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "bin": "dist/cli.mjs",
+  "type": "module",
+  "scripts": {
+    "test": "vitest run src",
+    "test:watch": "vitest src",
+    "fmt": "rome format ./src",
+    "lint": "rome check ./src",
+    "cli": "ts-node-esm src/cli.ts",
+    "build": "ts-node-esm src/build.ts"
+  },
+  "keywords": [
+    "SBOM",
+    "SPDX",
+    "cyclonedx",
+    "BOM"
+  ],
+  "author": "Benjamin Babik",
+  "license": "MIT",
+  "devDependencies": {
+    "@tsconfig/node16": "^1.0.3",
+    "@types/node": "^18.8.3",
+    "@types/spdx-expression-parse": "^3.0.2",
+    "esbuild": "^0.15.10",
+    "rome": "0.10.0-next",
+    "ts-node": "^10.9.1",
+    "typescript": "^4.8.4",
+    "vitest": "^0.23.4"
+  },
+  "dependencies": {
+    "@cyclonedx/bom": "^3.10.6",
+    "commander": "^9.4.1",
+    "spdx-expression-parse": "^3.0.1",
+    "yaml": "^2.1.3",
+    "zod": "^3.19.1"
+  }
+}

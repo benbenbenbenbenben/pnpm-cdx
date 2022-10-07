@@ -1,0 +1,19 @@
+{
+  "name": "test-project",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "clean": "rm *lock.*"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.186.0",
+    "aws-cdk": "^2.45.0"
+  },
+  "devDependencies": {
+    "@aws-sdk/client-s3": "^3.186.0"
+  }
+}
