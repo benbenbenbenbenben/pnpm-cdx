@@ -48,6 +48,7 @@
   },
   "dependencies": {
     "@cyclonedx/bom": "^3.10.6",
+    "@cyclonedx/cyclonedx-library": "^1.6.0",
     "commander": "^9.4.1",
     "fs-extra": "^10.1.0",
     "spdx-expression-parse": "^3.0.1",
