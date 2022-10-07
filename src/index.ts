@@ -3,9 +3,34 @@ import path from "node:path";
 import * as zod from "zod";
 import { parse as parseYaml } from "yaml";
 import spdx, { ConjunctionInfo, LicenseInfo } from "spdx-expression-parse";
+import { readFileSync } from "node:fs";
+import URL from "url";
 
-const nodePackageJson = zod.object({
+type licenseData = {
+	licenseId: string;
+	name: string;
+	crossRef: { url: string }[];
+};
+const licenseDataCache: Record<string, licenseData> = {};
+export const getLicenseData = (id: string) => {
+	if (licenseDataCache[id]) {
+		return licenseDataCache[id];
+	}
+	const moduleRoot = path.dirname(URL.fileURLToPath(import.meta.url));
+	licenseDataCache[id] = JSON.parse(
+		readFileSync(
+			path.join(
+				moduleRoot,
+				`data/license-list-data-3.18/json/details/${id}.json`,
+			),
+		).toString(),
+	) as licenseData;
+	return licenseDataCache[id];
+};
+
+export const nodePackageJson = zod.object({
 	license: zod.string().default("UNLICENSED").optional(),
+	scripts: zod.record(zod.string()).optional(),
 	dependencies: zod.record(zod.string()).optional(),
 	devDependencies: zod.record(zod.string()).optional(),
 	peerDependencies: zod.record(zod.string()).optional(),
@@ -47,10 +72,10 @@ export const analyseProject = async (pathOrDir: string) => {
 
 	const spdxFromPnpmName = async (qualifiedName: string) => {
 		// e.g. /@aws-sdk/service-error-classification/3.186.0
-		const storeName =
-			qualifiedName.split("/").slice(1, -1).join("+") +
-			"@" +
-			qualifiedName.split("/").at(-1);
+		const storeName = `${qualifiedName
+			.split("/")
+			.slice(1, -1)
+			.join("+")}@${qualifiedName.split("/").at(-1)}`;
 		const storePackagePath = path.join(
 			storeName,
 			"node_modules",
@@ -91,6 +116,11 @@ export const analyseProject = async (pathOrDir: string) => {
 	return {
 		generateReport: async (
 			options: generateReportOptions,
+			logger: {
+				warn: (s: string) => void;
+				error: (s: string) => void;
+				info: (s: string) => void;
+			} = console,
 		): Promise<AbstractReport> => {
 			if (options.format === "gitlab-license-report-2.1") {
 				const report: GitlabReport = {
@@ -117,7 +147,7 @@ export const analyseProject = async (pathOrDir: string) => {
 									version,
 								});
 							} else {
-								console.warn(
+								logger.warn(
 									`[WARNING] No license information for ${qualifiedName} because the package doesn't exist or contains invalid an SPDX expression.`,
 								);
 							}
@@ -125,7 +155,21 @@ export const analyseProject = async (pathOrDir: string) => {
 					},
 				);
 				await Promise.all(licenseCollectTask);
-
+				const licenseCounts = report.dependencies.reduce((mapped, dep) => {
+					dep.licenses.forEach((lic) => {
+						mapped[lic] = mapped[lic] + 1 || 1;
+					});
+					return mapped;
+				}, {} as Record<string, number>);
+				report.licenses = Object.keys(licenseCounts)
+					.map(getLicenseData)
+					.map((data) => ({
+						id: data.licenseId,
+						name: data.name,
+						url:
+							data.crossRef.at(0)?.url ||
+							`https://spdx.org/licenses/${data.licenseId}.html`,
+					}));
 				return report;
 			} else {
 				return { "pnpm-cdx-meta-format": "gitlab-license-report-2.1" };
@@ -162,14 +206,18 @@ export function isGitlabReport(t: AbstractReport): t is GitlabReport {
 export function isLicenseInfo(
 	x: LicenseInfo | ConjunctionInfo | undefined,
 ): x is LicenseInfo {
-	if (x) return Object.hasOwn(x, "license");
+	if (x) {
+		return Object.hasOwn(x, "license");
+	}
 	return false;
 }
 
 export function isConjunctionInfo(
 	x: LicenseInfo | ConjunctionInfo | undefined,
 ): x is ConjunctionInfo {
-	if (x) return Object.hasOwn(x, "conjunction");
+	if (x) {
+		return Object.hasOwn(x, "conjunction");
+	}
 	return false;
 }
 
