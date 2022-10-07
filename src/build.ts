@@ -2,7 +2,7 @@ import esbuild from "esbuild";
 import { writeFile, readFile, copyFile, rm } from "node:fs/promises";
 import fse from "fs-extra";
 import { exec } from "node:child_process";
-import { nodePackageJson } from "./index.js";
+import { NodePackageJsonSchema } from "./index.js";
 
 const execx = async (script: string) => {
 	return new Promise((resolve, reject) => {
@@ -67,7 +67,7 @@ const execx = async (script: string) => {
 	const repackage = await readFile("./package.json")
 		.then((b) => b.toString())
 		.then((s) => JSON.parse(s))
-		.then((o) => nodePackageJson.passthrough().parse(o));
+		.then((o) => NodePackageJsonSchema.passthrough().parse(o));
 	repackage.dependencies = undefined;
 	repackage.devDependencies = undefined;
 	repackage.peerDependencies = undefined;

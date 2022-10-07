@@ -5,7 +5,7 @@ import { parse as parseYaml } from "yaml";
 import spdx, { ConjunctionInfo, LicenseInfo } from "spdx-expression-parse";
 import { getLicenseData } from "./licenseDataCache.js";
 
-export const nodePackageJson = zod.object({
+export const NodePackageJsonSchema = zod.object({
 	license: zod.string().default("UNLICENSED").optional(),
 	scripts: zod.record(zod.string()).optional(),
 	dependencies: zod.record(zod.string()).optional(),
@@ -13,7 +13,7 @@ export const nodePackageJson = zod.object({
 	peerDependencies: zod.record(zod.string()).optional(),
 });
 
-const pnpmPackageLock = zod.object({
+export const PnpmPackageLockSchema = zod.object({
 	lockfileVersion: zod.number(),
 	specifiers: zod.record(zod.string()).optional(),
 	dependencies: zod.record(zod.string()).optional(),
@@ -38,14 +38,14 @@ export const analyseProject = async (pathOrDir: string) => {
 			.readFile(packageJsonAbs)
 			.then((data) => data.toString())
 			.then((json) => JSON.parse(json))
-			.then((obj) => nodePackageJson.parse(obj));
+			.then((obj) => NodePackageJsonSchema.parse(obj));
 
 	const readPackageLock = async (packageLockAbs: string) =>
 		await fs
 			.readFile(packageLockAbs)
 			.then((data) => data.toString())
 			.then((yaml) => parseYaml(yaml))
-			.then((obj) => pnpmPackageLock.parse(obj));
+			.then((obj) => PnpmPackageLockSchema.parse(obj));
 
 	const spdxFromPnpmName = async (qualifiedName: string) => {
 		// e.g. /@aws-sdk/service-error-classification/3.186.0
