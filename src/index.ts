@@ -3,30 +3,7 @@ import path from "node:path";
 import * as zod from "zod";
 import { parse as parseYaml } from "yaml";
 import spdx, { ConjunctionInfo, LicenseInfo } from "spdx-expression-parse";
-import { readFileSync } from "node:fs";
-import URL from "url";
-
-type licenseData = {
-	licenseId: string;
-	name: string;
-	crossRef: { url: string }[];
-};
-const licenseDataCache: Record<string, licenseData> = {};
-export const getLicenseData = (id: string) => {
-	if (licenseDataCache[id]) {
-		return licenseDataCache[id];
-	}
-	const moduleRoot = path.dirname(URL.fileURLToPath(import.meta.url));
-	licenseDataCache[id] = JSON.parse(
-		readFileSync(
-			path.join(
-				moduleRoot,
-				`data/license-list-data-3.18/json/details/${id}.json`,
-			),
-		).toString(),
-	) as licenseData;
-	return licenseDataCache[id];
-};
+import { getLicenseData } from "./licenseDataCache.js";
 
 export const nodePackageJson = zod.object({
 	license: zod.string().default("UNLICENSED").optional(),
