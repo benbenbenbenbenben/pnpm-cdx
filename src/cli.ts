@@ -1,7 +1,8 @@
 import { Argument, Command, Option, program } from "commander";
-import { analyseProject, getLicenseData } from "./index.js";
 import fs from "node:fs";
-import { stringify as yamlStringify } from "yaml";
+
+import { analyseProject } from "./index.js";
+import { getLicenseData } from "./licenseDataCache.js";
 
 program
 	.addArgument(
@@ -47,6 +48,14 @@ program
 				report = await analysis.generateReport(
 					{
 						format: "gitlab-license-report-2.1",
+					},
+					logger,
+				);
+			}
+			if (format === "cyclonedx") {
+				report = await analysis.generateReport(
+					{
+						format: "cyclonedx-builtin",
 					},
 					logger,
 				);

@@ -29,7 +29,7 @@ export const PnpmPackageLockSchema = zod.object({
 });
 
 export type generateReportOptions = {
-	format: "gitlab-license-report-2.1";
+	format: "gitlab-license-report-2.1" | "cyclonedx-builtin";
 };
 
 export const analyseProject = async (pathOrDir: string) => {
@@ -148,9 +148,10 @@ export const analyseProject = async (pathOrDir: string) => {
 							`https://spdx.org/licenses/${data.licenseId}.html`,
 					}));
 				return report;
-			} else {
+			} else if (options.format === "cyclonedx-builtin") {
 				return { "pnpm-cdx-meta-format": "gitlab-license-report-2.1" };
 			}
+			throw new Error("Unknown error");
 		},
 	};
 };
